@@ -1,96 +1,189 @@
 # Secure Multi-VLAN Office Network
 
-Simulasi jaringan kantor menggunakan Cisco Packet Tracer dengan penerapan VLAN, 802.1Q trunking, Router-on-a-Stick, inter-VLAN routing, dan Extended ACL untuk mengatur akses antar jaringan.
+Simulasi jaringan kantor menggunakan **Cisco Packet Tracer** dengan implementasi VLAN, 802.1Q trunking, Router-on-a-Stick, inter-VLAN routing, dan Extended ACL untuk mengatur komunikasi antar-departemen.
 
 ## Deskripsi Project
 
-Project ini merupakan simulasi jaringan kantor sederhana yang terdiri dari tiga departemen:
+Project ini merupakan simulasi jaringan kantor sederhana yang membagi jaringan menjadi tiga departemen:
 
 - HR
 - Finance
 - IT
 
-Setiap departemen ditempatkan pada VLAN dan network yang berbeda untuk melakukan segmentasi jaringan.
+Setiap departemen ditempatkan pada VLAN dan subnet yang berbeda untuk memberikan segmentasi jaringan.
 
-Router digunakan untuk memungkinkan komunikasi antar-VLAN menggunakan metode Router-on-a-Stick. Selain itu, Extended ACL diterapkan untuk membatasi komunikasi antara jaringan HR dan Finance.
+Komunikasi antar-VLAN dilakukan menggunakan metode **Router-on-a-Stick**, sedangkan **Extended ACL** digunakan untuk membatasi komunikasi tertentu antar-departemen.
+
+Project ini dibuat sebagai bagian dari portofolio untuk mendemonstrasikan pemahaman dasar mengenai konfigurasi dan troubleshooting jaringan Cisco.
+
+---
 
 ## Tujuan
 
-Project ini dibuat untuk mempraktikkan:
+Project ini bertujuan untuk mempraktikkan:
 
-1. Membuat segmentasi jaringan menggunakan VLAN.
-2. Mengatur access port pada switch.
-3. Mengonfigurasi 802.1Q trunk antara switch dan router.
-4. Mengimplementasikan inter-VLAN routing menggunakan Router-on-a-Stick.
-5. Mengonfigurasi default gateway untuk setiap VLAN.
-6. Menerapkan Extended ACL untuk membatasi akses dari HR ke Finance.
-7. Melakukan pengujian konektivitas dan ACL menggunakan perintah Cisco IOS.
+1. Segmentasi jaringan menggunakan VLAN.
+2. Konfigurasi access port pada switch.
+3. Konfigurasi 802.1Q trunking.
+4. Implementasi Router-on-a-Stick.
+5. Konfigurasi inter-VLAN routing.
+6. Konfigurasi default gateway untuk setiap VLAN.
+7. Implementasi Extended ACL.
+8. Pengujian konektivitas menggunakan ICMP/Ping.
+9. Verifikasi konfigurasi menggunakan Cisco IOS.
+10. Troubleshooting konektivitas jaringan.
+
+---
 
 ## Topologi Jaringan
 
-![Topologi Jaringan](topology/network-topology.png)
+![Network Topology](topology/network-topology.png)
 
 Topologi terdiri dari:
 
 - 1 Cisco ISR4300 Series Router
 - 1 Cisco Switch
-- 3 PC yang mewakili departemen HR, Finance, dan IT
+- 3 PC sebagai representasi departemen:
+  - HR
+  - Finance
+  - IT
 
-Router dan switch terhubung melalui satu link yang dikonfigurasi sebagai trunk 802.1Q untuk membawa traffic dari VLAN 10, VLAN 20, dan VLAN 30.
+Switch terhubung ke router menggunakan satu link trunk 802.1Q.
 
-## Pembagian VLAN dan IP Address
+Link trunk membawa traffic dari VLAN 10, VLAN 20, dan VLAN 30.
 
-| Departemen | VLAN | Network | Gateway | Contoh Host |
-|------------|------|---------|---------|-------------|
+---
+
+## VLAN & IP Addressing
+
+| Departemen | VLAN | Network | Gateway | Host |
+|---|---:|---|---|---|
 | HR | 10 | 192.168.10.0/24 | 192.168.10.1 | 192.168.10.10 |
 | Finance | 20 | 192.168.20.0/24 | 192.168.20.1 | 192.168.20.10 |
 | IT | 30 | 192.168.30.0/24 | 192.168.30.1 | 192.168.30.10 |
 
-## Konfigurasi Switch
+Setiap VLAN memiliki subnet sendiri sehingga broadcast domain antar-departemen terpisah.
 
-Port yang digunakan untuk masing-masing departemen:
+---
 
-| Port Switch | Mode | VLAN | Departemen |
-|-------------|------|------|------------|
+## Switch Configuration
+
+| Port | Mode | VLAN | Departemen |
+|---|---|---:|---|
 | Fa0/1 | Access | 10 | HR |
 | Fa0/2 | Access | 20 | Finance |
 | Fa0/3 | Access | 30 | IT |
-| Gi0/1 | Trunk | 802.1Q | Router |
+| Gi0/1 | Trunk | 10, 20, 30 | Router |
 
-Port `Gi0/1` digunakan sebagai trunk untuk membawa traffic dari VLAN 10, VLAN 20, dan VLAN 30 menuju router.
+### VLAN Configuration
+
+```text
+vlan 10
+ name HR
+
+vlan 20
+ name FINANCE
+
+vlan 30
+ name IT
+```
+
+### Access Port Configuration
+
+```text
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 10
+
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 20
+
+interface FastEthernet0/3
+ switchport mode access
+ switchport access vlan 30
+```
+
+### Trunk Configuration
+
+```text
+interface GigabitEthernet0/1
+ switchport mode trunk
+```
+
+---
 
 ## Router-on-a-Stick
 
-Router menggunakan beberapa subinterface pada `GigabitEthernet0/0/0`:
+Router menggunakan satu physical interface dengan beberapa subinterface untuk menangani traffic dari VLAN yang berbeda.
 
 | Subinterface | VLAN | IP Address |
-|--------------|------|------------|
+|---|---:|---|
 | G0/0/0.10 | 10 | 192.168.10.1/24 |
 | G0/0/0.20 | 20 | 192.168.20.1/24 |
 | G0/0/0.30 | 30 | 192.168.30.1/24 |
 
-Setiap IP address pada subinterface digunakan sebagai default gateway untuk VLAN masing-masing.
-
-## Kebijakan Keamanan
-
-Kebijakan keamanan yang diterapkan:
-
-| Source | Destination | Aksi |
-|--------|-------------|------|
-| HR | Finance | ❌ Ditolak |
-| HR | IT | ✅ Diizinkan |
-
-Extended ACL dengan nama `BLOCK-HR-FINANCE` dibuat untuk menerapkan kebijakan tersebut.
-
-ACL diterapkan secara inbound pada:
+Konfigurasi:
 
 ```text
-GigabitEthernet0/0/0.10
+interface GigabitEthernet0/0/0
+ no shutdown
+
+interface GigabitEthernet0/0/0.10
+ encapsulation dot1Q 10
+ ip address 192.168.10.1 255.255.255.0
+
+interface GigabitEthernet0/0/0.20
+ encapsulation dot1Q 20
+ ip address 192.168.20.1 255.255.255.0
+
+interface GigabitEthernet0/0/0.30
+ encapsulation dot1Q 30
+ ip address 192.168.30.1 255.255.255.0
 ```
 
-Dengan konfigurasi tersebut, traffic yang berasal dari network HR akan diperiksa oleh ACL ketika memasuki router melalui subinterface tersebut.
+Setiap subinterface digunakan sebagai **default gateway** untuk host pada VLAN masing-masing.
 
-## Konfigurasi ACL
+---
+
+## Inter-VLAN Routing
+
+Router digunakan untuk meneruskan traffic antar-VLAN.
+
+```text
+HR VLAN 10
+192.168.10.0/24
+        |
+        v
+192.168.10.1
+        |
+      Router
+        |
+        v
+192.168.30.1
+        |
+IT VLAN 30
+192.168.30.0/24
+```
+
+Dengan Router-on-a-Stick, perangkat pada VLAN yang berbeda dapat berkomunikasi melalui router.
+
+---
+
+## Security Policy
+
+Extended ACL digunakan untuk mengatur komunikasi antar-departemen.
+
+| Source | Destination | Aksi |
+|---|---|---|
+| HR | Finance | ❌ Deny |
+| HR | IT | ✅ Permit |
+
+Kebijakan utama project adalah membatasi akses dari jaringan **HR menuju Finance**, sementara komunikasi HR menuju IT tetap diperbolehkan.
+
+---
+
+## Extended ACL
 
 ACL yang digunakan:
 
@@ -100,128 +193,138 @@ ip access-list extended BLOCK-HR-FINANCE
  permit ip 192.168.10.0 0.0.0.255 192.168.30.0 0.0.0.255
 ```
 
-ACL kemudian diterapkan pada subinterface HR:
+ACL diterapkan secara inbound pada subinterface VLAN HR:
 
 ```text
-interface gigabitEthernet 0/0/0.10
-ip access-group BLOCK-HR-FINANCE in
+interface GigabitEthernet0/0/0.10
+ ip access-group BLOCK-HR-FINANCE in
 ```
 
-## Pengujian
+Dengan konfigurasi tersebut, traffic yang berasal dari network HR diperiksa sebelum diteruskan ke network tujuan.
 
-### 1. Pengujian HR → Finance
+---
 
-Pengujian dilakukan dari PC HR menggunakan:
+## Connectivity Testing
+
+### HR → Finance
 
 ```text
 ping 192.168.20.10
 ```
 
-Hasil pengujian:
+Traffic dari HR menuju Finance diblokir oleh ACL.
 
 ```text
-Reply from 192.168.10.1: Destination host unreachable.
-
 Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
 ```
 
-Hasil:
+**Status: Blocked as intended.**
 
-**Traffic dari HR menuju Finance berhasil diblokir sesuai dengan konfigurasi ACL.**
-
-### 2. Pengujian HR → IT
-
-Pengujian dilakukan menggunakan:
+### HR → IT
 
 ```text
 ping 192.168.30.10
 ```
 
-Hasil pengujian:
+```text
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
+```
+
+**Status: Successful.**
+
+### Finance → IT
+
+```text
+ping 192.168.30.10
+```
 
 ```text
 Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
 ```
 
-Hasil:
+**Status: Successful.**
 
-**Traffic dari HR menuju IT berhasil diteruskan.**
+### IT → HR
 
-## Verifikasi ACL
+```text
+ping 192.168.10.10
+```
 
-ACL diverifikasi menggunakan perintah:
+```text
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
+```
+
+**Status: Successful.**
+
+---
+
+## ACL Verification
+
+ACL diverifikasi menggunakan:
 
 ```text
 show access-lists
 ```
 
-Hasil pengujian:
+Contoh rule:
 
 ```text
 Extended IP access list BLOCK-HR-FINANCE
 
-10 deny ip 192.168.10.0 0.0.0.255 192.168.20.0 0.0.0.255 (4 match(es))
-
-20 permit ip 192.168.10.0 0.0.0.255 192.168.30.0 0.0.0.255 (8 match(es))
+10 deny ip 192.168.10.0 0.0.0.255 192.168.20.0 0.0.0.255
+20 permit ip 192.168.10.0 0.0.0.255 192.168.30.0 0.0.0.255
 ```
 
-Nilai `match(es)` menunjukkan bahwa rule ACL telah memproses traffic selama pengujian.
+Counter `match(es)` dapat digunakan untuk memastikan rule ACL telah memproses traffic selama pengujian.
+
+---
 
 ## Troubleshooting
 
-Selama proses konfigurasi, terdapat beberapa kondisi yang perlu diperiksa dan diperbaiki.
-
 ### Interface Router Administratively Down
 
-Pada awal konfigurasi, `GigabitEthernet0/0/0` berada dalam kondisi:
+Jika interface router berada dalam kondisi:
 
 ```text
 administratively down
 ```
 
-Interface kemudian diaktifkan menggunakan:
+gunakan:
 
 ```text
-interface gigabitEthernet 0/0/0
-no shutdown
+interface GigabitEthernet0/0/0
+ no shutdown
 ```
 
-Setelah itu, status interface berubah menjadi `up/up`.
-
-### CDP Neighbor Tidak Terlihat
-
-Pada awalnya, `show cdp neighbors` tidak menampilkan perangkat tetangga.
-
-Setelah interface router diaktifkan, koneksi antara switch dan router dapat terdeteksi.
-
-Koneksi yang terdeteksi:
+Verifikasi:
 
 ```text
-Switch Gi0/1 ↔ Router Gi0/0/0
+show ip interface brief
 ```
 
-### Konfigurasi Trunk
-
-Port `Gi0/1` pada switch dikonfigurasi sebagai trunk menggunakan:
+### Memastikan VLAN Assignment
 
 ```text
-interface gigabitEthernet 0/1
-switchport mode trunk
+show vlan brief
 ```
 
-Konfigurasi kemudian diverifikasi menggunakan:
+Digunakan untuk memastikan setiap PC berada pada VLAN yang sesuai.
+
+### Memastikan Trunk
 
 ```text
 show interfaces trunk
 ```
 
-Interface menunjukkan status `trunking` dengan encapsulation `802.1Q`.
+Digunakan untuk memastikan link antara switch dan router berfungsi sebagai trunk.
 
-### Inter-VLAN Routing
+### Memastikan Subinterface
 
-Sebelum Router-on-a-Stick dikonfigurasi, PC yang berada pada VLAN berbeda belum dapat berkomunikasi.
+```text
+show ip interface brief
+```
 
-Untuk memungkinkan komunikasi antar-VLAN, dibuat tiga subinterface pada router:
+Subinterface yang digunakan:
 
 ```text
 G0/0/0.10
@@ -229,35 +332,64 @@ G0/0/0.20
 G0/0/0.30
 ```
 
-Setiap subinterface kemudian diberikan VLAN ID menggunakan `encapsulation dot1Q` dan IP address sebagai default gateway.
+### Memastikan Default Gateway
 
-### Pengujian Ping
+| VLAN | Default Gateway |
+|---:|---|
+| 10 | 192.168.10.1 |
+| 20 | 192.168.20.1 |
+| 30 | 192.168.30.1 |
 
-Pada beberapa pengujian, ping pertama mengalami timeout sementara ping berikutnya berhasil.
+Kesalahan default gateway dapat menyebabkan host tidak dapat berkomunikasi dengan jaringan lain.
 
-Pengujian kemudian diulangi untuk memastikan konektivitas.
+---
 
-## Perintah Verifikasi
+## Verification Commands
 
-Beberapa perintah Cisco IOS yang digunakan dalam project ini:
+Perintah Cisco IOS yang digunakan:
 
 ```text
 show vlan brief
-show cdp neighbors
 show interfaces trunk
 show ip interface brief
+show cdp neighbors
 show access-lists
 ```
 
-Perintah tersebut digunakan untuk memeriksa:
+Perintah tersebut digunakan untuk memverifikasi:
 
-- VLAN dan port
-- Koneksi antarperangkat
+- VLAN dan assignment port
 - Status trunk
-- Status interface dan IP address
+- Status interface
+- Koneksi antarperangkat
 - Aktivitas ACL
 
-## Teknologi yang Digunakan
+---
+
+## Network Design Overview
+
+```text
+                 +----------------+
+                 |     Router     |
+                 | Router-on-Stick|
+                 +-------+--------+
+                         |
+                    802.1Q Trunk
+                         |
+                 +-------+--------+
+                 |     Switch     |
+                 +---+-----+---+--+
+                     |     |   |
+                   VLAN10 VLAN20 VLAN30
+                     |     |   |
+                    HR  Finance IT
+```
+
+Segmentasi VLAN digunakan untuk memisahkan broadcast domain, sedangkan router digunakan untuk menyediakan komunikasi antar-VLAN.
+
+---
+
+## Technologies Used
 
 - Cisco Packet Tracer
 - Cisco IOS
@@ -269,24 +401,62 @@ Perintah tersebut digunakan untuk memeriksa:
 - Extended ACL
 - ICMP / Ping
 - CDP
+- Network Troubleshooting
 
-## Hal yang Dipelajari
+---
 
-Melalui project ini, saya mempraktikkan:
+## Skills Demonstrated
 
-- Segmentasi jaringan menggunakan VLAN
-- Perbedaan access port dan trunk port
+Project ini mendemonstrasikan kemampuan dalam:
+
+- VLAN configuration
+- Access port configuration
+- Trunk configuration
 - IPv4 addressing
-- Default gateway
+- Default gateway configuration
 - Router-on-a-Stick
 - Inter-VLAN routing
 - Extended ACL
-- Source dan destination pada traffic
-- Network troubleshooting
-- Verifikasi konfigurasi menggunakan Cisco IOS
+- Traffic filtering
+- Connectivity testing
+- Cisco IOS verification
+- Basic network troubleshooting
 
-## Status Project
+---
 
-**Selesai**
+## Project Files
 
-Konfigurasi jaringan, inter-VLAN routing, ACL, dan pengujian konektivitas telah berhasil dilakukan menggunakan Cisco Packet Tracer.
+Struktur repository:
+
+```text
+project-1-secure-multi-vlan-office-network/
+│
+├── README.md
+│
+├── topology/
+│   └── network-topology.png
+│
+└── packet-tracer/
+    └── secure-multi-vlan-office-network.pkt
+```
+
+File `.pkt` dapat dibuka menggunakan **Cisco Packet Tracer** untuk melihat dan menguji konfigurasi jaringan secara langsung.
+
+---
+
+## Project Status
+
+**Completed**
+
+Project ini telah menyelesaikan implementasi:
+
+- VLAN segmentation
+- Access port
+- 802.1Q trunking
+- Router-on-a-Stick
+- Inter-VLAN routing
+- Extended ACL
+- Connectivity testing
+- Basic troubleshooting
+
+Project berhasil disimulasikan menggunakan Cisco Packet Tracer.
