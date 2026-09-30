@@ -37,7 +37,7 @@ Project ini bertujuan untuk mempraktikkan:
 
 ## Topologi Jaringan
 
-![Network Topology](topology/network-topology.png)
+![Network Topology](network-topology.png)
 
 Topologi terdiri dari:
 
@@ -484,11 +484,12 @@ Melalui project ini, saya mempraktikkan:
 ## Project Files
 
 ```text
-.
-├── VLAN_InterVLAN_ACL_Lab.pkt
+
+secure-multi-vlan-office-network/
 ├── README.md
-└── topology/
-    └── network-topology.png
+├── VLAN_InterVLAN_ACL_Lab.pkt
+└── network-topology.png
+
 ```
 
 File `.pkt` dapat dibuka menggunakan **Cisco Packet Tracer** untuk melihat topologi dan konfigurasi jaringan secara langsung.
