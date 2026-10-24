@@ -1,212 +1,286 @@
 # Secure Multi-VLAN Office Network
 
-Simulasi jaringan kantor menggunakan **Cisco Packet Tracer** dengan implementasi VLAN, 802.1Q trunking, Router-on-a-Stick, inter-VLAN routing, dan Extended ACL untuk mengatur komunikasi antar-departemen.
+Simulasi jaringan kantor menggunakan **Cisco Packet Tracer** dengan implementasi VLAN, 802.1Q trunking, Router-on-a-Stick, inter-VLAN routing, dan Extended Access Control List (ACL) untuk mengatur komunikasi antar-departemen.
 
 ## Deskripsi Project
 
-Project ini merupakan simulasi jaringan kantor sederhana yang membagi jaringan menjadi tiga departemen:
+Project ini merupakan simulasi jaringan kantor sederhana yang membagi jaringan menjadi tiga departemen, yaitu Human Resources (HR), Finance, dan Information Technology (IT).
 
-- HR
-- Finance
-- IT
+Setiap departemen ditempatkan pada VLAN dan subnet yang berbeda untuk menerapkan segmentasi jaringan. Komunikasi antar-VLAN dilakukan menggunakan metode **Router-on-a-Stick**, sedangkan Extended ACL digunakan untuk membatasi komunikasi berdasarkan kebijakan keamanan yang telah ditentukan.
 
-Setiap departemen ditempatkan pada VLAN dan subnet yang berbeda untuk memberikan segmentasi jaringan.
+Project ini dibuat sebagai bagian dari portofolio untuk menunjukkan pemahaman dasar mengenai konfigurasi jaringan Cisco, segmentasi jaringan, pengendalian akses, verifikasi konektivitas, dan troubleshooting.
 
-Komunikasi antar-VLAN dilakukan menggunakan metode **Router-on-a-Stick**, sedangkan **Extended ACL** digunakan untuk membatasi komunikasi tertentu antar-departemen.
-
-Project ini dibuat sebagai bagian dari portofolio untuk mendemonstrasikan pemahaman dasar mengenai konfigurasi, keamanan, verifikasi, dan troubleshooting jaringan Cisco.
-
----
-
-## Tujuan
+## Tujuan Project
 
 Project ini bertujuan untuk mempraktikkan:
 
 1. Segmentasi jaringan menggunakan VLAN.
 2. Konfigurasi access port pada switch.
-3. Konfigurasi 802.1Q trunking.
+3. Konfigurasi trunking menggunakan IEEE 802.1Q.
 4. Implementasi Router-on-a-Stick.
 5. Konfigurasi inter-VLAN routing.
-6. Konfigurasi default gateway untuk setiap VLAN.
-7. Implementasi Extended ACL.
-8. Pengujian konektivitas menggunakan ICMP/Ping.
-9. Verifikasi konfigurasi menggunakan Cisco IOS.
-10. Troubleshooting konektivitas jaringan.
+6. Konfigurasi IPv4 address dan default gateway.
+7. Implementasi Extended Access Control List (ACL).
+8. Pembatasan komunikasi antar-departemen.
+9. Pengujian konektivitas menggunakan ICMP/Ping.
+10. Verifikasi konfigurasi menggunakan perintah Cisco IOS.
+11. Troubleshooting konektivitas dan validasi aturan ACL.
 
----
+## Teknologi yang Digunakan
+
+- Cisco Packet Tracer
+- Cisco IOS
+- IPv4 Addressing
+- VLAN
+- IEEE 802.1Q Trunking
+- Router-on-a-Stick
+- Inter-VLAN Routing
+- Extended Access Control List (ACL)
+- ICMP/Ping
+- Cisco IOS Verification Commands
 
 ## Topologi Jaringan
 
 ![Network Topology](network-topology.png)
 
-Topologi terdiri dari:
+Topologi jaringan terdiri dari:
 
-- 1 Cisco ISR4300 Series Router
-- 1 Cisco Catalyst 2960 Series Switch
-- 3 PC yang mewakili departemen:
-  - HR
-  - Finance
-  - IT
+- 1 Cisco ISR 4331 Router
+- 1 Cisco Catalyst 2960-24TT Switch
+- 3 PC yang mewakili departemen HR, Finance, dan IT
 
-Switch terhubung ke router menggunakan satu link trunk 802.1Q.
+Router terhubung ke switch menggunakan satu link trunk 802.1Q. Link tersebut membawa trafik dari VLAN 10, VLAN 20, dan VLAN 30 menuju router untuk proses routing dan penerapan ACL.
 
-Link trunk membawa traffic dari VLAN 10, VLAN 20, dan VLAN 30 menuju router.
-
----
-
-## VLAN & IP Addressing
-
-| Departemen | VLAN |     Network     |    Gateway   |      Host     |
-|------------|-----:|-----------------|--------------|---------------|
-|     HR     |  10  | 192.168.10.0/24 | 192.168.10.1 | 192.168.10.10 |
-|   Finance  |  20  | 192.168.20.0/24 | 192.168.20.1 | 192.168.20.10 |
-|     IT     |  30  | 192.168.30.0/24 | 192.168.30.1 | 192.168.30.10 |
-
-Setiap VLAN menggunakan subnet yang berbeda sehingga broadcast domain antar-departemen terpisah.
-
----
-
-## Switch Configuration
-
-Port switch digunakan sebagai berikut:
-
-|  Port |  Mode  |    VLAN    | Departemen |
-|-------|--------|-----------:|------------|
-| Fa0/1 | Access |     10     |     HR     |
-| Fa0/2 | Access |     20     |   Finance  |
-| Fa0/3 | Access |     30     |     IT     |
-| Gi0/1 | Trunk  | 10, 20, 30 |   Router   |
-
-Port `Gi0/1` digunakan sebagai trunk untuk membawa traffic dari ketiga VLAN menuju router.
-
-Contoh konfigurasi trunk:
+### Gambaran Topologi
 
 ```text
-interface GigabitEthernet0/1
- switchport mode trunk
+                    +---------------------+
+                    |    Cisco ISR 4331   |
+                    |  Router-on-a-Stick  |
+                    +----------+----------+
+                               |
+                         802.1Q Trunk
+                               |
+                    +----------+----------+
+                    | Cisco Catalyst 2960 |
+                    +-----+---------+-----+
+                          |         |
+                    +-----+--+  +---+-----+
+                    |        |  |         |
+                  VLAN 10  VLAN 20     VLAN 30
+                    |        |           |
+                   HR     Finance        IT
+                192.168.10.10 192.168.20.10 192.168.30.10
 ```
 
-Status trunk diverifikasi menggunakan:
+## VLAN dan IP Addressing
 
-```text
+| Departemen | VLAN ID | Network | Default Gateway | IP Address PC |
+|---|---:|---|---|---|
+| HR | 10 | 192.168.10.0/24 | 192.168.10.1 | 192.168.10.10 |
+| Finance | 20 | 192.168.20.0/24 | 192.168.20.1 | 192.168.20.10 |
+| IT | 30 | 192.168.30.0/24 | 192.168.30.1 | 192.168.30.10 |
+
+Seluruh PC menggunakan subnet mask `255.255.255.0`.
+
+Setiap VLAN menggunakan subnet yang berbeda sehingga masing-masing departemen berada dalam broadcast domain yang terpisah.
+
+## Konfigurasi Switch
+
+### Pembagian Port
+
+| Port Switch | Mode | VLAN | Departemen |
+|---|---|---:|---|
+| Fa0/1 | Access | 10 | HR |
+| Fa0/2 | Access | 20 | Finance |
+| Fa0/3 | Access | 30 | IT |
+| Gi0/1 | Trunk | 10, 20, 30 | Router |
+
+### Konfigurasi VLAN
+
+Contoh konfigurasi VLAN pada switch:
+
+```cisco
+enable
+configure terminal
+
+vlan 10
+ name HR
+exit
+
+vlan 20
+ name FINANCE
+exit
+
+vlan 30
+ name IT
+exit
+```
+
+### Konfigurasi Access Port
+
+```cisco
+interface FastEthernet0/1
+ switchport mode access
+ switchport access vlan 10
+exit
+
+interface FastEthernet0/2
+ switchport mode access
+ switchport access vlan 20
+exit
+
+interface FastEthernet0/3
+ switchport mode access
+ switchport access vlan 30
+exit
+```
+
+### Konfigurasi Trunk
+
+```cisco
+interface GigabitEthernet0/1
+ switchport mode trunk
+exit
+```
+
+Port `GigabitEthernet0/1` digunakan untuk menghubungkan switch dengan router dan membawa trafik dari VLAN yang diperlukan.
+
+Konfigurasi diverifikasi menggunakan:
+
+```cisco
+show vlan brief
 show interfaces trunk
 ```
 
-Hasil verifikasi menunjukkan:
+Hasil verifikasi menunjukkan bahwa VLAN 10, VLAN 20, dan VLAN 30 telah dibuat serta port trunk berada dalam status `trunking`.
 
-```text
-Gig0/1    802.1q    trunking
-```
+## Konfigurasi Router-on-a-Stick
 
-VLAN yang aktif pada trunk:
+Router menggunakan satu physical interface, yaitu `GigabitEthernet0/0/0`, dengan beberapa subinterface untuk menangani trafik dari VLAN yang berbeda.
 
-```text
-1,10,20,30
-```
+### Pembagian Subinterface
 
----
+| Subinterface | VLAN ID | IP Address | Fungsi |
+|---|---:|---|---|
+| G0/0/0.10 | 10 | 192.168.10.1/24 | Gateway HR |
+| G0/0/0.20 | 20 | 192.168.20.1/24 | Gateway Finance |
+| G0/0/0.30 | 30 | 192.168.30.1/24 | Gateway IT |
 
-## Router-on-a-Stick
+### Konfigurasi Subinterface
 
-Router menggunakan satu physical interface dengan beberapa subinterface untuk menangani traffic dari VLAN yang berbeda.
+```cisco
+interface GigabitEthernet0/0/0
+ no ip address
+ no shutdown
+exit
 
-| Subinterface | VLAN |    IP Address   |
-|--------------|-----:|-----------------|
-|   G0/0/0.10  |  10  | 192.168.10.1/24 |
-|   G0/0/0.20  |  20  | 192.168.20.1/24 |
-|   G0/0/0.30  |  30  | 192.168.30.1/24 |
-
-Setiap subinterface menggunakan VLAN ID melalui `encapsulation dot1Q` dan IP address sebagai default gateway untuk VLAN masing-masing.
-
-Konfigurasi subinterface:
-
-```text
 interface GigabitEthernet0/0/0.10
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.0
+ ip access-group BLOCK-HR-FINANCE in
+exit
 
 interface GigabitEthernet0/0/0.20
  encapsulation dot1Q 20
  ip address 192.168.20.1 255.255.255.0
+ ip access-group BLOCK-FINANCE in
+exit
 
 interface GigabitEthernet0/0/0.30
  encapsulation dot1Q 30
  ip address 192.168.30.1 255.255.255.0
+exit
 ```
 
----
+Perintah `encapsulation dot1Q` menghubungkan setiap subinterface dengan VLAN ID yang sesuai. IP address pada masing-masing subinterface digunakan sebagai default gateway bagi PC di VLAN tersebut.
 
-## Security Policy
+## Kebijakan Keamanan Jaringan
 
-Extended ACL digunakan untuk membatasi komunikasi antar-departemen.
+Extended ACL digunakan untuk mengendalikan komunikasi antar-departemen berdasarkan alamat IP sumber dan tujuan.
 
-Kebijakan yang diterapkan:
+### Matriks Kebijakan Akses
 
-|  Source | Destination |    Action   |
-|---------|-------------|-------------|
-|    HR   |   Finance   | ❌ Denied  |
-|    HR   |      IT     | ✅ Allowed |
-| Finance |      HR     | ❌ Denied  |
-| Finance |      IT     | ❌ Denied  |
+| Sumber | Tujuan | Kebijakan |
+|---|---|---|
+| HR | Finance | Diblokir |
+| HR | IT | Diizinkan |
+| Finance | HR | Diblokir |
+| Finance | IT | Diblokir |
+| Finance | Gateway sendiri | ICMP diizinkan |
 
-ACL diterapkan secara inbound pada subinterface masing-masing VLAN:
+Kebijakan tersebut diterapkan menggunakan ACL inbound pada subinterface router:
 
-- `G0/0/0.10` → `BLOCK-HR-FINANCE`
-- `G0/0/0.20` → `BLOCK-FINANCE`
+- `G0/0/0.10` menggunakan ACL `BLOCK-HR-FINANCE`.
+- `G0/0/0.20` menggunakan ACL `BLOCK-FINANCE`.
 
----
+**Catatan:** ACL Finance tidak memiliki aturan `permit ip` umum. Oleh karena itu, trafik yang tidak cocok dengan aturan yang diizinkan akan terkena *implicit deny*. Kebijakan ini membatasi akses Finance lebih luas daripada hanya memblokir HR dan IT.
 
-## ACL Configuration
+## Konfigurasi Extended ACL
 
-### HR ACL
+### 1. ACL untuk Departemen HR
 
-ACL `BLOCK-HR-FINANCE` digunakan untuk memblokir traffic dari HR menuju Finance dan mengizinkan traffic dari HR menuju IT.
+ACL `BLOCK-HR-FINANCE` digunakan untuk memblokir trafik dari HR menuju Finance dan mengizinkan trafik dari HR menuju IT.
 
-```text
+```cisco
 ip access-list extended BLOCK-HR-FINANCE
  deny ip 192.168.10.0 0.0.0.255 192.168.20.0 0.0.0.255
  permit ip 192.168.10.0 0.0.0.255 192.168.30.0 0.0.0.255
 ```
 
-ACL diterapkan pada subinterface HR:
+ACL diterapkan secara inbound pada subinterface HR:
 
-```text
+```cisco
 interface GigabitEthernet0/0/0.10
  ip access-group BLOCK-HR-FINANCE in
 ```
 
-### Finance ACL
+Penjelasan aturan:
 
-ACL `BLOCK-FINANCE` digunakan untuk memblokir traffic dari Finance menuju HR dan IT.
+1. `deny ip` memblokir trafik dari subnet HR menuju subnet Finance.
+2. `permit ip` mengizinkan trafik dari subnet HR menuju subnet IT.
+3. Trafik lain yang tidak cocok dengan aturan `permit` akan terkena *implicit deny*.
 
-```text
+### 2. ACL untuk Departemen Finance
+
+ACL `BLOCK-FINANCE` digunakan untuk memblokir komunikasi dari Finance menuju HR dan IT, serta mengizinkan ICMP dari Finance menuju gateway-nya sendiri.
+
+```cisco
 ip access-list extended BLOCK-FINANCE
  deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255
+ permit icmp 192.168.20.0 0.0.0.255 host 192.168.20.1
  deny ip 192.168.20.0 0.0.0.255 192.168.30.0 0.0.0.255
 ```
 
-ACL diterapkan pada subinterface Finance:
+ACL diterapkan secara inbound pada subinterface Finance:
 
-```text
+```cisco
 interface GigabitEthernet0/0/0.20
  ip access-group BLOCK-FINANCE in
 ```
 
-Karena `BLOCK-FINANCE` tidak memiliki explicit `permit` statement, traffic dari Finance yang tidak cocok dengan rule deny juga terkena **implicit deny**.
+Penjelasan aturan:
 
----
+1. `deny ip` memblokir trafik dari Finance menuju subnet HR.
+2. `permit icmp` mengizinkan paket ICMP dari Finance menuju alamat gateway `192.168.20.1`.
+3. `deny ip` memblokir trafik dari Finance menuju subnet IT.
+4. Trafik lain yang tidak cocok dengan aturan `permit` akan terkena *implicit deny*.
 
-## Testing
+ACL diproses secara berurutan, sehingga urutan aturan harus diperhatikan saat merancang kebijakan akses.
 
-### 1. HR → Finance
+## Pengujian Konektivitas
 
-Pengujian dilakukan dari PC HR:
+Pengujian dilakukan menggunakan perintah `ping` dari masing-masing PC untuk memverifikasi konektivitas serta perilaku ACL.
+
+### 1. HR menuju Finance
+
+Perintah pada PC HR:
 
 ```text
 ping 192.168.20.10
 ```
 
-Hasil:
+Hasil pengujian:
 
 ```text
 Reply from 192.168.10.1: Destination host unreachable.
@@ -214,51 +288,27 @@ Reply from 192.168.10.1: Destination host unreachable.
 Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
 ```
 
-**Result:** ❌ Traffic dari HR menuju Finance berhasil diblokir oleh ACL.
+**Hasil:** Ping gagal sesuai dengan kebijakan yang dirancang untuk memblokir komunikasi HR menuju Finance.
 
----
+### 2. HR menuju IT
 
-### 2. HR → IT
-
-Pengujian dilakukan dari PC HR:
+Perintah pada PC HR:
 
 ```text
 ping 192.168.30.10
 ```
 
-Hasil:
+Hasil pengujian:
 
 ```text
 Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
 ```
 
-**Result:** ✅ Traffic dari HR menuju IT berhasil diteruskan.
+**Hasil:** Berhasil. PC HR dapat berkomunikasi dengan PC IT.
 
----
+### 3. Finance menuju HR
 
-### 3. Finance → IT
-
-Pengujian dilakukan dari PC Finance:
-
-```text
-ping 192.168.30.10
-```
-
-Hasil:
-
-```text
-Reply from 192.168.20.1: Destination host unreachable.
-
-Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
-```
-
-**Result:** ❌ Traffic dari Finance menuju IT berhasil diblokir oleh ACL.
-
----
-
-### 4. Finance → HR
-
-Pengujian dilakukan dari PC Finance menggunakan:
+Perintah pada PC Finance:
 
 ```text
 ping 192.168.10.10
@@ -272,51 +322,91 @@ Reply from 192.168.20.1: Destination host unreachable.
 Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
 ```
 
-**Result:** ❌ Traffic dari Finance menuju HR berhasil diblokir sesuai dengan konfigurasi `BLOCK-FINANCE`.
+**Hasil:** Ping gagal sesuai dengan kebijakan pembatasan komunikasi Finance menuju HR.
 
----
+### 4. Finance menuju IT
 
-## Verification
+Perintah pada PC Finance:
 
-Beberapa perintah Cisco IOS digunakan untuk memverifikasi konfigurasi.
+```text
+ping 192.168.30.10
+```
+
+Hasil pengujian:
+
+```text
+Reply from 192.168.20.1: Destination host unreachable.
+
+Packets: Sent = 4, Received = 0, Lost = 4 (100% loss)
+```
+
+**Hasil:** Ping gagal sesuai dengan kebijakan pembatasan komunikasi Finance menuju IT.
+
+### 5. Finance menuju Gateway
+
+Perintah pada PC Finance:
+
+```text
+ping 192.168.20.1
+```
+
+Hasil pengujian:
+
+```text
+Packets: Sent = 4, Received = 4, Lost = 0 (0% loss)
+```
+
+**Hasil:** Berhasil. PC Finance dapat melakukan ping ke gateway-nya sendiri.
+
+### Ringkasan Pengujian
+
+| Pengujian | Hasil yang Diharapkan | Hasil Aktual |
+|---|---|---|
+| HR → Finance | Diblokir | Sesuai |
+| HR → IT | Diizinkan | Sesuai |
+| Finance → HR | Diblokir | Sesuai |
+| Finance → IT | Diblokir | Sesuai |
+| Finance → Gateway | Diizinkan | Sesuai |
+
+Pesan ping yang gagal tidak selalu membuktikan bahwa ACL merupakan penyebabnya. Oleh karena itu, hasil pengujian juga dibandingkan dengan konfigurasi router dan penghitung ACL.
+
+## Verifikasi Konfigurasi
+
+Beberapa perintah Cisco IOS digunakan untuk memverifikasi konfigurasi jaringan.
 
 ### Verifikasi VLAN
 
-```text
+```cisco
 show vlan brief
 ```
 
-Hasil menunjukkan:
+Perintah ini digunakan untuk memeriksa VLAN yang tersedia serta assignment port access.
 
-```text
-VLAN 10 → Fa0/1
-VLAN 20 → Fa0/2
-VLAN 30 → Fa0/3
-```
+Hasil yang diharapkan:
+
+- VLAN 10 berada pada Fa0/1.
+- VLAN 20 berada pada Fa0/2.
+- VLAN 30 berada pada Fa0/3.
 
 ### Verifikasi Trunk
 
-```text
+```cisco
 show interfaces trunk
 ```
 
-Trunk:
+Perintah ini digunakan untuk memeriksa status trunk, encapsulation, dan VLAN yang aktif pada link trunk.
 
-```text
-Gig0/1
-Encapsulation: 802.1q
-Status: trunking
-```
-
-VLAN 10, 20, dan 30 terdeteksi aktif pada trunk.
+Hasil pengujian menunjukkan port `GigabitEthernet0/1` menggunakan 802.1Q dan berada dalam status `trunking`.
 
 ### Verifikasi Interface Router
 
-```text
+```cisco
 show ip interface brief
 ```
 
-Subinterface yang aktif:
+Perintah ini digunakan untuk memeriksa status interface serta IP address pada router.
+
+Subinterface yang diverifikasi:
 
 ```text
 GigabitEthernet0/0/0.10    192.168.10.1    up    up
@@ -324,190 +414,106 @@ GigabitEthernet0/0/0.20    192.168.20.1    up    up
 GigabitEthernet0/0/0.30    192.168.30.1    up    up
 ```
 
+### Verifikasi Routing
+
+```cisco
+show ip route
+```
+
+Perintah ini digunakan untuk memeriksa tabel routing dan memastikan jaringan VLAN terhubung secara langsung melalui subinterface router.
+
 ### Verifikasi ACL
 
-```text
+```cisco
 show access-lists
 ```
 
-ACL yang dikonfigurasi:
+Perintah ini digunakan untuk memeriksa aturan ACL dan jumlah paket yang cocok dengan masing-masing aturan (*match counters*).
 
-```text
-BLOCK-HR-FINANCE
-BLOCK-FINANCE
+Penghitung ACL membantu memverifikasi bahwa trafik pengujian cocok dengan aturan yang telah dikonfigurasi.
+
+### Verifikasi Konfigurasi Lengkap
+
+```cisco
+show running-config
 ```
 
----
+Perintah ini digunakan untuk memeriksa konfigurasi aktif router, termasuk IP address, subinterface, serta penerapan ACL.
 
 ## Troubleshooting
 
-Selama proses konfigurasi, beberapa hal diperiksa untuk memastikan jaringan berjalan dengan benar.
+Selama proses implementasi, dilakukan troubleshooting untuk mengisolasi masalah konektivitas pada jaringan Finance.
 
-### Router Interface
+### Kasus: PC Finance Tidak Dapat Melakukan Ping ke Gateway
 
-Physical interface:
+Pada tahap awal pengujian, PC Finance mengalami kegagalan ping menuju gateway saat ACL Finance diterapkan.
 
-```text
-GigabitEthernet0/0/0
-```
+Langkah troubleshooting yang dilakukan:
 
-digunakan sebagai parent interface untuk subinterface.
+1. Memeriksa konfigurasi IP address, subnet mask, dan default gateway pada PC Finance.
+2. Memeriksa status subinterface router.
+3. Memverifikasi konfigurasi VLAN dan trunk pada switch.
+4. Memeriksa tabel MAC address dan ARP untuk memastikan perangkat terdeteksi.
+5. Melepas sementara ACL Finance untuk mengisolasi perilaku konektivitas.
+6. Menguji kembali ping menuju gateway.
+7. Menambahkan aturan izin ICMP menuju gateway Finance.
+8. Memasang kembali ACL pada subinterface Finance.
+9. Menguji kembali ping gateway dan komunikasi menuju VLAN lain.
+10. Memeriksa penghitung ACL menggunakan `show access-lists`.
 
-Status akhir:
+**Hasil:** Setelah aturan ICMP ditambahkan dan ACL dipasang kembali, ping menuju gateway Finance berhasil. Pengujian menuju HR dan IT tetap gagal sesuai kebijakan, serta penghitung ACL diperiksa untuk memvalidasi aturan yang cocok.
 
-```text
-up/up
-```
+Proses ini memberikan pengalaman dalam mengisolasi masalah, memeriksa konfigurasi, dan memvalidasi hasil perubahan pada Cisco Packet Tracer.
 
-### Trunk Configuration
-
-Port `Gi0/1` pada switch dikonfigurasi sebagai trunk:
-
-```text
-interface GigabitEthernet0/1
- switchport mode trunk
-```
-
-Konfigurasi diverifikasi menggunakan:
-
-```text
-show interfaces trunk
-```
-
-### Inter-VLAN Routing
-
-Inter-VLAN routing dilakukan melalui Router-on-a-Stick dengan subinterface:
-
-```text
-G0/0/0.10
-G0/0/0.20
-G0/0/0.30
-```
-
-Masing-masing subinterface menggunakan:
-
-```text
-encapsulation dot1Q
-```
-
-dan IP address yang berfungsi sebagai default gateway VLAN.
-
-### ACL Verification
-
-ACL diverifikasi menggunakan:
-
-```text
-show access-lists
-```
-
-Pengujian dilakukan menggunakan ping dari beberapa VLAN untuk memastikan rule ACL bekerja sesuai kebijakan yang telah ditentukan.
-
----
-
-## Perintah Verifikasi yang Digunakan
-
-```text
-show vlan brief
-show interfaces trunk
-show ip interface brief
-show running-config
-show access-lists
-```
-
-Perintah tersebut digunakan untuk memeriksa:
-
-- VLAN dan assignment port
-- Status trunk
-- Status interface dan IP address
-- Konfigurasi router
-- Konfigurasi ACL
-
----
-
-## Network Design Overview
-
-```text
-                 +----------------+
-                 |     Router     |
-                 | Router-on-Stick|
-                 +-------+--------+
-                         |
-                    802.1Q Trunk
-                         |
-                 +-------+--------+
-                 |     Switch     |
-                 +---+-----+---+--+
-                     |     |   |
-                   VLAN10 VLAN20 VLAN30
-                     |     |   |
-                    HR  Finance IT
-```
-
-Segmentasi VLAN digunakan untuk memisahkan broadcast domain, sedangkan router digunakan untuk menyediakan komunikasi antar-VLAN.
-
----
-
-## Teknologi yang Digunakan
-
-- Cisco Packet Tracer
-- Cisco IOS
-- IPv4
-- VLAN
-- 802.1Q Trunking
-- Router-on-a-Stick
-- Inter-VLAN Routing
-- Extended ACL
-- ICMP / Ping
-- Cisco IOS Verification Commands
-
----
-
-## Skills Demonstrated
+## Ringkasan Keterampilan
 
 Melalui project ini, saya mempraktikkan:
 
-- Network segmentation menggunakan VLAN
-- Access port dan trunk port
-- IPv4 addressing
-- Default gateway
-- 802.1Q trunking
-- Router-on-a-Stick
-- Inter-VLAN routing
-- Extended ACL
-- Traffic filtering
-- Network troubleshooting
-- Connectivity testing
-- Cisco IOS configuration and verification
+- Konfigurasi VLAN dan segmentasi jaringan.
+- Konfigurasi access port dan trunk port.
+- IPv4 addressing dan subnetting dasar.
+- Konfigurasi default gateway.
+- Implementasi Router-on-a-Stick.
+- Inter-VLAN routing.
+- Implementasi Extended ACL.
+- Pengendalian trafik antar-subnet.
+- Pengujian konektivitas menggunakan ICMP/Ping.
+- Verifikasi konfigurasi menggunakan Cisco IOS.
+- Analisis ACL match counters.
+- Troubleshooting konektivitas jaringan.
 
----
-
-## Project Files
+## Struktur File Project
 
 ```text
-
 secure-multi-vlan-office-network/
 ├── README.md
 ├── VLAN_InterVLAN_ACL_Lab.pkt
 └── network-topology.png
-
 ```
 
-File `.pkt` dapat dibuka menggunakan **Cisco Packet Tracer** untuk melihat topologi dan konfigurasi jaringan secara langsung.
+Keterangan:
 
----
+- `README.md` berisi dokumentasi topologi, konfigurasi, kebijakan keamanan, dan hasil pengujian.
+- `VLAN_InterVLAN_ACL_Lab.pkt` berisi simulasi jaringan yang dapat dibuka menggunakan Cisco Packet Tracer.
+- `network-topology.png` berisi gambar topologi jaringan.
+
+Pastikan nama file dan lokasi file sesuai dengan yang tersedia di repositori GitHub.
 
 ## Status Project
 
-**Completed**
+**Status: Completed — Lab Tested**
 
-Project telah menyelesaikan implementasi:
+Project ini telah mencakup implementasi dan pengujian:
 
-- VLAN segmentation
-- 802.1Q trunking
-- Router-on-a-Stick
-- Inter-VLAN routing
-- Extended ACL
-- Connectivity testing
-- Configuration verification
+- VLAN segmentation.
+- 802.1Q trunking.
+- Router-on-a-Stick.
+- Inter-VLAN routing.
+- Extended ACL.
+- Pengujian konektivitas antar-VLAN.
+- Verifikasi konfigurasi router dan switch.
+- Troubleshooting ACL dan konektivitas.
 
-Project ini dibuat sebagai project portfolio untuk mendemonstrasikan dasar-dasar **network configuration, traffic filtering, troubleshooting, dan Cisco IOS administration**.
+Project ini dibuat sebagai simulasi pembelajaran untuk mendemonstrasikan keterampilan dasar konfigurasi, keamanan, verifikasi, dan troubleshooting jaringan yang relevan untuk posisi **Junior Network Engineer, Network Support, dan posisi entry-level terkait jaringan**.
+
+Seluruh hasil dan kesimpulan dalam dokumentasi ini mengacu pada pengujian di Cisco Packet Tracer, bukan pada penerapan di jaringan produksi.
