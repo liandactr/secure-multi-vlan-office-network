@@ -440,6 +440,26 @@ show running-config
 
 Perintah ini digunakan untuk memeriksa konfigurasi aktif router, termasuk IP address, subinterface, serta penerapan ACL.
 
+## Dokumentasi Pengujian
+
+### 1. Verifikasi VLAN
+![Verifikasi VLAN](vlan-verification.png)
+
+### 2. Verifikasi Trunking
+![Verifikasi Trunking](trunk-verification.png)
+
+### 3. Verifikasi Interface Router
+![Verifikasi Interface Router](router-interface-verification.png)
+
+### 4. Verifikasi ACL
+![Verifikasi ACL](acl-verification.png)
+
+### 5. Pengujian Konektivitas PC HR
+![Pengujian Konektivitas](connectivity-testing-HR.png)
+
+### 5. Pengujian Konektivitas PC FINANCE
+![Pengujian Konektivitas](connectivity-testing-FINANCE.png)
+
 ## Troubleshooting
 
 Selama proses implementasi, dilakukan troubleshooting untuk mengisolasi masalah konektivitas pada jaringan Finance.
