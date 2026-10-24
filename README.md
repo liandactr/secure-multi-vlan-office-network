@@ -528,8 +528,8 @@ Keterangan:
 - `router-interface-verification.png` berisi screenshot status interface router.
 - `trunk-verification.png` berisi screenshot verifikasi trunking.
 - `vlan-verification.png` berisi screenshot verifikasi VLAN.
-```
-```
+
+
 ## Status Project
 
 **Status: Completed — Lab Tested**
@@ -548,4 +548,3 @@ Project ini telah mencakup implementasi dan pengujian:
 Project ini dibuat sebagai simulasi pembelajaran untuk mendemonstrasikan keterampilan dasar konfigurasi, keamanan, verifikasi, dan troubleshooting jaringan yang relevan untuk posisi **Junior Network Engineer, Network Support, dan posisi entry-level terkait jaringan**.
 
 Seluruh hasil dan kesimpulan dalam dokumentasi ini mengacu pada pengujian di Cisco Packet Tracer, bukan pada penerapan di jaringan produksi.
-```
