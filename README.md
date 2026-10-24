@@ -508,16 +508,27 @@ Melalui project ini, saya mempraktikkan:
 secure-multi-vlan-office-network/
 ├── README.md
 ├── VLAN_InterVLAN_ACL_Lab.pkt
-└── network-topology.png
+├── acl-verification.png
+├── connectivity-testing-FINANCE.png
+├── connectivity-testing-HR.png
+├── network-topology.png
+├── router-interface-verification.png
+├── trunk-verification.png
+└── vlan-verification.png
 ```
 
 Keterangan:
 
-- `README.md` berisi dokumentasi topologi, konfigurasi, kebijakan keamanan, dan hasil pengujian.
-- `VLAN_InterVLAN_ACL_Lab.pkt` berisi simulasi jaringan yang dapat dibuka menggunakan Cisco Packet Tracer.
+- `README.md` berisi dokumentasi proyek.
+- `VLAN_InterVLAN_ACL_Lab.pkt` berisi simulasi jaringan Cisco Packet Tracer.
+- `acl-verification.png` berisi screenshot konfigurasi ACL dan match counters.
+- `connectivity-testing-FINANCE.png` berisi screenshot pengujian konektivitas dari PC Finance.
+- `connectivity-testing-HR.png` berisi screenshot pengujian konektivitas dari PC HR.
 - `network-topology.png` berisi gambar topologi jaringan.
-
-Pastikan nama file dan lokasi file sesuai dengan yang tersedia di repositori GitHub.
+- `router-interface-verification.png` berisi screenshot status interface router.
+- `trunk-verification.png` berisi screenshot verifikasi trunking.
+- `vlan-verification.png` berisi screenshot verifikasi VLAN.
+```
 
 ## Status Project
 
